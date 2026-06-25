@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Feedback Wali Murid - Guru Kelas II MI Ma'arif Blendangan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --cream:#F8F4E9;
+    --ink:#243326;
+    --teal:#3A6B4A;
+    --teal-deep:#234430;
+    --gold:#7FA86B;
+    --gold-soft:#C9DCB8;
+    --line:#DCD4BC;
+    --white:#FFFDF7;
+    --green-ok:#3E7A56;
+    --red-warn:#B6452C;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    background-image:
+      radial-gradient(circle at 8% 10%, rgba(58,107,74,0.07) 0, transparent 45%),
+      radial-gradient(circle at 95% 85%, rgba(127,168,107,0.08) 0, transparent 40%);
+  }
+
+  .wrap{ max-width:640px; margin:0 auto; padding:40px 20px 80px; }
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:36px;
+  }
+  .brand{
+    font-family:'Fraunces', serif; font-weight:600; font-size:18px;
+    color:var(--teal-deep); letter-spacing:0.2px;
+  }
+  .brand span{color:var(--gold);}
+  .nav-link{
+    font-size:13px; color:var(--teal); text-decoration:none;
+    border-bottom:1px solid transparent; transition:border-color .2s;
+  }
+  .nav-link:hover{border-color:var(--teal);}
+
+  /* ===== HERO ===== */
+  .hero{margin-bottom:32px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--teal); background:rgba(58,107,74,0.09);
+    padding:6px 12px; border-radius:100px; margin-bottom:16px;
+  }
+  .eyebrow svg{width:13px;height:13px;}
+  h1{
+    font-family:'Fraunces', serif; font-weight:600;
+    font-size:clamp(26px, 5vw, 36px); line-height:1.18;
+    color:var(--teal-deep); margin-bottom:12px; letter-spacing:-0.3px;
+  }
+  .sub{ font-size:15px; line-height:1.6; color:#5C6B65; max-width:480px; }
+  .anon-note{
+    margin-top:18px; display:flex; align-items:flex-start; gap:10px;
+    background:var(--white); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  }
+  .anon-note svg{flex-shrink:0; width:18px; height:18px; margin-top:1px; color:var(--teal);}
+  .anon-note p{font-size:13px; line-height:1.5; color:#5C6B65;}
+  .anon-note strong{color:var(--ink);}
+
+  /* ===== CARD ===== */
+  .card{
+    background:var(--white); border:1px solid var(--line); border-radius:20px;
+    padding:32px 28px;
+    box-shadow:0 1px 2px rgba(35,51,46,0.03), 0 12px 32px -16px rgba(35,51,46,0.08);
+  }
+
+  .field{margin-bottom:28px;}
+  .field:last-child{margin-bottom:0;}
+  label.field-label{
+    display:block; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:10px;
+  }
+
+  textarea, input[type=text]{
+    width:100%; font-family:'Inter', sans-serif; font-size:14.5px; color:var(--ink);
+    background:var(--cream); border:1.5px solid var(--line); border-radius:10px;
+    padding:12px 14px; transition:border-color .2s, background .2s;
+  }
+  textarea:focus, input:focus{ outline:none; border-color:var(--teal); background:var(--white); }
+  textarea{resize:vertical; min-height:110px; line-height:1.5;}
+
+  /* ===== STAR RATING ===== */
+  .star-block{
+    background:linear-gradient(180deg, #FCFAF3, var(--cream));
+    border:1.5px solid var(--line); border-radius:16px;
+    padding:28px 20px 22px; text-align:center;
+  }
+  .stars{display:flex; justify-content:center; gap:6px; margin-bottom:10px;}
+  .star-btn{
+    background:none; border:none; cursor:pointer; padding:4px; line-height:0;
+    transform:scale(1); transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+  }
+  .star-btn:hover{transform:scale(1.15);}
+  .star-btn svg{
+    width:42px; height:42px; stroke:var(--teal); stroke-width:1.5; fill:none;
+    transition:fill .2s, stroke .2s, filter .2s;
+  }
+  .star-btn.active svg{
+    fill:var(--gold); stroke:var(--teal-deep);
+    filter:drop-shadow(0 2px 6px rgba(127,168,107,0.4));
+  }
+  .star-btn.pulse svg{animation:starPulse .35s ease;}
+  @keyframes starPulse{ 0%{transform:scale(1);} 40%{transform:scale(1.3);} 100%{transform:scale(1);} }
+  .star-label{
+    font-family:'Fraunces', serif; font-size:15px; font-weight:500;
+    color:var(--teal-deep); min-height:20px;
+  }
+
+  /* tags */
+  .tags{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+  .tag{
+    font-size:12.5px; padding:7px 13px; border-radius:100px;
+    border:1.5px solid var(--line); background:var(--cream); color:#5C6B65;
+    cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .tag:hover{border-color:var(--teal);}
+  .tag.selected{ background:var(--teal); border-color:var(--teal); color:var(--white); }
+
+  .char-count{ text-align:right; font-size:11.5px; color:#A2ACA6; margin-top:6px; }
+
+  .submit-btn{
+    width:100%; background:var(--teal-deep); color:var(--white);
+    font-family:'Inter', sans-serif; font-weight:600; font-size:15px;
+    padding:15px; border:none; border-radius:12px; cursor:pointer;
+    transition:background .2s, transform .1s; margin-top:8px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .submit-btn:hover{background:var(--teal);}
+  .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{ background:#B9C2B5; cursor:not-allowed; }
+  .submit-btn svg{width:17px;height:17px;}
+
+  .error-text{ color:var(--red-warn); font-size:12.5px; margin-top:8px; display:none; }
+  .error-text.show{display:block;}
+
+  /* ===== SUCCESS SCREEN ===== */
+  .success-screen{text-align:center; padding:50px 20px;}
+  .success-icon{
+    width:68px; height:68px; background:rgba(62,122,86,0.1); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+  }
+  .success-icon svg{width:30px; height:30px; color:var(--green-ok);}
+  .success-screen h2{ font-family:'Fraunces', serif; font-size:24px; color:var(--teal-deep); margin-bottom:10px; }
+  .success-screen p{ font-size:14px; color:#5C6B65; max-width:380px; margin:0 auto 24px; line-height:1.6; }
+  .ghost-btn{
+    background:none; border:1.5px solid var(--line); color:var(--teal-deep);
+    font-weight:600; font-size:13.5px; padding:10px 20px; border-radius:10px;
+    cursor:pointer; transition:border-color .2s;
+  }
+  .ghost-btn:hover{border-color:var(--teal);}
+
+  footer{ text-align:center; margin-top:36px; font-size:12px; color:#A2ACA6; line-height:1.6; }
+
+  /* ===== LOGIN SCREEN ===== */
+  .login-screen{ max-width:380px; margin:80px auto; padding:0 20px; text-align:center; }
+  .login-icon{
+    width:52px;height:52px; background:var(--teal-deep); border-radius:14px;
+    display:flex;align-items:center;justify-content:center; margin:0 auto 18px;
+  }
+  .login-icon svg{width:24px;height:24px;color:var(--gold-soft);}
+  .login-screen h2{ font-family:'Fraunces', serif; font-size:22px; color:var(--teal-deep); margin-bottom:6px; }
+  .login-screen p{font-size:13.5px;color:#5C6B65;margin-bottom:24px;}
+  .login-screen input{text-align:center; letter-spacing:2px; margin-bottom:12px;}
+
+  /* ===== DASHBOARD ===== */
+  .dash-wrap{max-width:760px; margin:0 auto; padding:40px 20px 80px;}
+  .dash-header{margin-bottom:28px;}
+  .dash-header h1{ font-family:'Fraunces', serif; font-size:28px; color:var(--teal-deep); margin-bottom:6px; }
+  .dash-header p{font-size:14px;color:#5C6B65;}
+
+  .stat-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
+  .stat-card{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:18px 16px; }
+  .stat-num{
+    font-family:'Fraunces', serif; font-size:28px; font-weight:600; color:var(--teal-deep);
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .stat-num .unit{font-size:14px;font-weight:400;color:#8B9892;}
+  .stat-label{font-size:12px;color:#8B9892;margin-top:4px;}
+  .stat-num svg{width:20px;height:20px;color:var(--gold);}
+
+  .dist-card{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:24px; }
+  .dist-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:16px;}
+  .dist-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12.5px; }
+  .dist-row .lbl{width:46px;flex-shrink:0;color:#5C6B65;display:flex;align-items:center;gap:3px;}
+  .dist-row .lbl svg{width:11px;height:11px;fill:var(--gold);}
+  .dist-bar-bg{ flex:1; height:10px; background:var(--cream); border-radius:6px; overflow:hidden; }
+  .dist-bar-fill{
+    height:100%; background:linear-gradient(90deg, var(--gold-soft), var(--gold));
+    border-radius:6px; transition:width .6s cubic-bezier(.16,1,.3,1);
+  }
+  .dist-row .cnt{width:26px;text-align:right;color:#8B9892;flex-shrink:0;}
+
+  .tags-summary{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:24px; }
+  .tags-summary .dist-title{margin-bottom:14px;}
+  .tag-chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .tag-chip{
+    font-size:12px; padding:6px 12px; border-radius:100px;
+    background:rgba(58,107,74,0.1); color:var(--teal-deep); font-weight:500;
+  }
+  .tag-chip b{color:var(--teal);margin-left:4px;}
+
+  .comments-section h3{ font-size:13px; font-weight:600; color:var(--ink); margin-bottom:14px; }
+  .comment-card{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:18px 18px 16px; margin-bottom:12px; }
+  .comment-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .comment-stars{display:flex;gap:2px;}
+  .comment-stars svg{width:14px;height:14px;fill:var(--gold);}
+  .comment-stars svg.empty{fill:var(--line);}
+  .comment-date{font-size:11px;color:#A2ACA6;}
+  .comment-text{font-size:14px;line-height:1.6;color:var(--ink);}
+  .comment-text.empty-msg{color:#A2ACA6;font-style:italic;}
+  .comment-tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+  .comment-tags .tag-chip{font-size:11px;padding:4px 10px;}
+
+  .empty-state{ text-align:center; padding:60px 20px; color:#8B9892; }
+  .empty-state svg{width:40px;height:40px;margin-bottom:14px;opacity:0.5;}
+  .empty-state p{font-size:14px;}
+
+  .logout-link{ font-size:12.5px; color:#8B9892; text-decoration:none; border-bottom:1px solid transparent; }
+  .logout-link:hover{border-color:#8B9892;}
+
+  .loading-text{ text-align:center; padding:60px 20px; color:#8B9892; font-size:13px; }
+
+  @media (max-width:480px){
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .stat-row .stat-card:last-child{grid-column:span 2;}
+    .star-btn svg{width:36px;height:36px;}
+  }
+
+  [data-view]{display:none;}
+  [data-view].active{display:block;}
+</style>
+</head>
+<body>
+
+<!-- ============ VIEW: FORM (wali murid) ============ -->
+<div data-view="form" class="active">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">MI Ma&#39;arif <span>Blendangan</span></div>
+      <a href="#" class="nav-link" id="toLoginLink">Masuk sebagai guru →</a>
+    </div>
+
+    <div class="hero">
+      <span class="eyebrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Tahun Ajaran 2025/2026
+      </span>
+      <h1>Feedback atau Umpan Balik<br/>Wali Murid kepada Guru Kelas II</h1>
+      <p class="sub">MI Ma'arif Blendangan — Penilaian Bapak/Ibu sangat membantu guru untuk terus berkembang. Isian ini akan disampaikan tanpa nama.</p>
+
+      <div class="anon-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
+        <p><strong>Identitas Anda dirahasiakan.</strong> Kami tidak menyimpan nama, kelas anak, atau data apa pun yang bisa mengenali Anda.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <form id="feedbackForm">
+        <div class="field">
+          <label class="field-label">Guru kelas</label>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--cream);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--teal-deep);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:14px;flex-shrink:0;">E</div>
+            <div>
+              <div style="font-size:14.5px;font-weight:600;color:var(--ink);">Erma Dwi Septanti, S.Pd., Gr.</div>
+              <div style="font-size:12px;color:#8B9892;">Guru Kelas II</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Berikan penilaian</label>
+          <div class="star-block">
+            <div class="stars" id="starContainer"></div>
+            <div class="star-label" id="starLabel">Ketuk bintang untuk menilai</div>
+          </div>
+          <div class="error-text" id="starError">Mohon pilih penilaian bintang.</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Apa yang menonjol? <span style="color:#A2ACA6;font-weight:400;">(opsional, boleh pilih lebih dari satu)</span></label>
+          <div class="tags" id="tagContainer">
+            <span class="tag" data-tag="Komunikasi baik">Komunikasi baik</span>
+            <span class="tag" data-tag="Sabar & perhatian">Sabar &amp; perhatian</span>
+            <span class="tag" data-tag="Mengajar jelas">Mengajar jelas</span>
+            <span class="tag" data-tag="Disiplin & tegas">Disiplin &amp; tegas</span>
+            <span class="tag" data-tag="Kreatif & inovatif">Kreatif &amp; inovatif</span>
+            <span class="tag" data-tag="Responsif ke orang tua">Responsif ke orang tua</span>
+            <span class="tag" data-tag="Ramah & menyenangkan">Ramah &amp; menyenangkan</span>
+            <span class="tag" data-tag="Adil ke semua siswa">Adil ke semua siswa</span>
+            <span class="tag" data-tag="Memberi semangat">Memberi semangat</span>
+            <span class="tag" data-tag="Rapi dalam administrasi">Rapi dalam administrasi</span>
+            <span class="tag" data-tag="Peduli perkembangan anak">Peduli perkembangan anak</span>
+            <span class="tag" data-tag="Tepat waktu">Tepat waktu</span>
+            <span class="tag" data-tag="Mudah dihubungi">Mudah dihubungi</span>
+            <span class="tag" data-tag="Perlu ditingkatkan">Perlu ditingkatkan</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Komentar atau saran <span style="color:#A2ACA6;font-weight:400;">(opsional)</span></label>
+          <textarea id="commentText" maxlength="500" placeholder="Tuliskan masukan, apresiasi, atau saran perbaikan untuk guru kelas…"></textarea>
+          <div class="char-count"><span id="charCount">0</span>/500</div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span id="submitBtnText">Kirim Feedback Anonim</span>
+        </button>
+      </form>
+
+      <div class="success-screen" id="successScreen" style="display:none;">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h2>Terima kasih!</h2>
+        <p>Masukan Anda telah terkirim secara anonim dan akan membantu guru kelas terus berkembang.</p>
+        <button class="ghost-btn" id="sendAnotherBtn">Kirim feedback lain</button>
+      </div>
+    </div>
+
+    <footer>MI Ma'arif Blendangan · Tahun Ajaran 2025/2026<br/>Tidak ada nama atau data pribadi yang dicatat dalam sistem ini.</footer>
+  </div>
+</div>
+
+<!-- ============ VIEW: LOGIN (guru) ============ -->
+<div data-view="login">
+  <div class="login-screen">
+    <div class="login-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </div>
+    <h2>Dasbor Guru</h2>
+    <p>Masukkan kode akses untuk melihat rekap feedback dari wali murid.</p>
+    <input type="text" id="passInput" placeholder="Kode akses" autocomplete="off" />
+    <div class="error-text" id="loginError" style="text-align:center;">Kode akses salah. Coba lagi.</div>
+    <button class="submit-btn" id="loginBtn"><span>Masuk ke Dasbor</span></button>
+    <p style="margin-top:18px;"><a href="#" class="nav-link" id="backToFormLink">← Kembali ke form feedback</a></p>
+  </div>
+</div>
+
+<!-- ============ VIEW: DASHBOARD (guru) ============ -->
+<div data-view="dashboard">
+  <div class="dash-wrap">
+    <div class="topbar">
+      <div class="brand">MI Ma&#39;arif <span>Blendangan</span></div>
+      <a href="#" class="logout-link" id="logoutLink">Keluar</a>
+    </div>
+
+    <div class="dash-header">
+      <h1>Rekap Feedback Anda</h1>
+      <p id="dashSubtitle">Memuat data…</p>
+    </div>
+
+    <div id="dashContent">
+      <div class="loading-text">Memuat rekap feedback…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- CONFIG ----------
+  var TEACHER_NAME = "Erma Dwi Septanti, S.Pd., Gr.";
+  var ACCESS_CODE = "guru123"; // kode akses dasbor guru — bisa diganti
+  var STAR_LABELS = {1:"Sangat kurang", 2:"Kurang", 3:"Cukup", 4:"Baik", 5:"Sangat baik"};
+
+  function slugify(str){
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  var TEACHER_SLUG = slugify(TEACHER_NAME); // contoh: erma-dwi-septanti-s-pd-gr
+
+  function starSVG(){
+    return '<svg viewBox="0 0 24 24"><path d="M12 2.5l3.09 6.26 6.91 1-5 4.87 1.18 6.88L12 18.27l-6.18 3.24L7 14.63l-5-4.87 6.91-1L12 2.5z" stroke-linejoin="round"/></svg>';
+  }
+
+  // ---------- VIEW ROUTER ----------
+  function showView(name){
+    document.querySelectorAll('[data-view]').forEach(function(el){
+      el.classList.toggle('active', el.getAttribute('data-view') === name);
+    });
+    window.scrollTo(0,0);
+  }
+
+  document.getElementById('toLoginLink').addEventListener('click', function(e){
+    e.preventDefault();
+    if(sessionStorage.getItem('guru_logged_in') === '1'){
+      showView('dashboard');
+      loadDashboard();
+    } else {
+      showView('login');
+    }
+  });
+  document.getElementById('backToFormLink').addEventListener('click', function(e){
+    e.preventDefault();
+    showView('form');
+  });
+  document.getElementById('logoutLink').addEventListener('click', function(e){
+    e.preventDefault();
+    sessionStorage.removeItem('guru_logged_in');
+    showView('form');
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', function(){
+    var val = document.getElementById('passInput').value.trim();
+    var err = document.getElementById('loginError');
+    if(val === ACCESS_CODE){
+      err.classList.remove('show');
+      sessionStorage.setItem('guru_logged_in', '1');
+      showView('dashboard');
+      loadDashboard();
+    } else {
+      err.classList.add('show');
+    }
+  });
+  document.getElementById('passInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('loginBtn').click();
+  });
+
+  // ---------- STAR RATING ----------
+  var starContainer = document.getElementById('starContainer');
+  var currentRating = 0;
+  for(var i=1;i<=5;i++){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'star-btn';
+    btn.dataset.val = i;
+    btn.innerHTML = starSVG();
+    starContainer.appendChild(btn);
+  }
+  var starBtns = Array.prototype.slice.call(starContainer.querySelectorAll('.star-btn'));
+
+  function renderStars(hoverVal){
+    var val = hoverVal || currentRating;
+    starBtns.forEach(function(b){
+      var v = parseInt(b.dataset.val, 10);
+      b.classList.toggle('active', v <= val);
+    });
+    document.getElementById('starLabel').textContent = val > 0 ? STAR_LABELS[val] : 'Ketuk bintang untuk menilai';
+  }
+  starBtns.forEach(function(b){
+    b.addEventListener('mouseenter', function(){ renderStars(parseInt(b.dataset.val,10)); });
+    b.addEventListener('mouseleave', function(){ renderStars(); });
+    b.addEventListener('click', function(){
+      currentRating = parseInt(b.dataset.val, 10);
+      b.classList.add('pulse');
+      setTimeout(function(){ b.classList.remove('pulse'); }, 350);
+      renderStars();
+      document.getElementById('starError').classList.remove('show');
+    });
+  });
+  renderStars();
+
+  // ---------- TAGS ----------
+  var selectedTags = [];
+  document.querySelectorAll('.tag').forEach(function(tag){
+    tag.addEventListener('click', function(){
+      var t = tag.dataset.tag;
+      if(selectedTags.indexOf(t) > -1){
+        selectedTags = selectedTags.filter(function(x){ return x !== t; });
+        tag.classList.remove('selected');
+      } else {
+        selectedTags.push(t);
+        tag.classList.add('selected');
+      }
+    });
+  });
+
+  // ---------- COMMENT CHAR COUNT ----------
+  var commentEl = document.getElementById('commentText');
+  commentEl.addEventListener('input', function(){
+    document.getElementById('charCount').textContent = commentEl.value.length;
+  });
+
+  // ---------- FORM SUBMIT ----------
+  document.getElementById('feedbackForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(currentRating === 0){
+      document.getElementById('starError').classList.add('show');
+      document.querySelector('.star-block').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    var submitBtn = document.getElementById('submitBtn');
+    var submitBtnText = document.getElementById('submitBtnText');
+    submitBtn.disabled = true;
+    submitBtnText.textContent = 'Mengirim…';
+
+    var entry = {
+      rating: currentRating,
+      comment: commentEl.value.trim(),
+      tags: selectedTags.slice(),
+      ts: Date.now()
+    };
+
+    try{
+      // Key storage TIDAK BOLEH mengandung spasi/koma/titik/kutip — gunakan slug + random id murni alfanumerik
+      var randomId = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      var key = 'fb-' + TEACHER_SLUG + '-' + randomId;
+
+      var result = await window.storage.set(key, JSON.stringify(entry), true);
+      if(!result){ throw new Error('Storage returned null'); }
+
+      document.getElementById('feedbackForm').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+    } catch(err){
+      console.error('Gagal mengirim feedback:', err);
+      alert('Maaf, terjadi kendala saat mengirim feedback. Silakan coba lagi sebentar.');
+      submitBtn.disabled = false;
+      submitBtnText.textContent = 'Kirim Feedback Anonim';
+    }
+  });
+
+  document.getElementById('sendAnotherBtn').addEventListener('click', function(){
+    document.getElementById('feedbackForm').reset();
+    document.getElementById('feedbackForm').style.display = 'block';
+    document.getElementById('successScreen').style.display = 'none';
+    currentRating = 0;
+    selectedTags = [];
+    document.querySelectorAll('.tag.selected').forEach(function(t){ t.classList.remove('selected'); });
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('starError').classList.remove('show');
+    renderStars();
+    var submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = false;
+    document.getElementById('submitBtnText').textContent = 'Kirim Feedback Anonim';
+  });
+
+  // ---------- DASHBOARD LOGIC ----------
+  async function loadDashboard(){
+    var dashContent = document.getElementById('dashContent');
+    var dashSubtitle = document.getElementById('dashSubtitle');
+
+    dashSubtitle.textContent = TEACHER_NAME + ' — Guru Kelas II';
+    dashContent.innerHTML = '<div class="loading-text">Memuat rekap feedback…</div>';
+
+    try{
+      var prefix = 'fb-' + TEACHER_SLUG + '-';
+      var listResult = await window.storage.list(prefix, true);
+      var keys = (listResult && listResult.keys) ? listResult.keys : [];
+
+      if(keys.length === 0){
+        dashContent.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Belum ada feedback yang masuk untuk Anda.</p></div>';
+        return;
+      }
+
+      var entries = [];
+      for(var i=0;i<keys.length;i++){
+        try{
+          var r = await window.storage.get(keys[i], true);
+          if(r && r.value){
+            entries.push(JSON.parse(r.value));
+          }
+        }catch(e){ /* lewati entri yang rusak */ }
+      }
+
+      entries.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+      renderDashboard(entries);
+    }catch(err){
+      console.error('Gagal memuat dashboard:', err);
+      dashContent.innerHTML = '<div class="empty-state"><p>Gagal memuat data. Coba muat ulang halaman.</p></div>';
+    }
+  }
+
+  function renderDashboard(entries){
+    var dashContent = document.getElementById('dashContent');
+    var n = entries.length;
+    var avg = n ? (entries.reduce(function(s,e){ return s + (e.rating||0); }, 0) / n) : 0;
+    var dist = {1:0,2:0,3:0,4:0,5:0};
+    entries.forEach(function(e){ if(e.rating>=1 && e.rating<=5) dist[e.rating]++; });
+
+    var tagCounts = {};
+    entries.forEach(function(e){
+      (e.tags||[]).forEach(function(t){ tagCounts[t] = (tagCounts[t]||0) + 1; });
+    });
+    var sortedTags = Object.keys(tagCounts).sort(function(a,b){ return tagCounts[b]-tagCounts[a]; });
+
+    var html = '';
+
+    html += '<div class="stat-row">';
+    html += '<div class="stat-card"><div class="stat-num">'+avg.toFixed(1)+' '+starSVG()+'</div><div class="stat-label">Rata-rata rating</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">'+n+' <span class="unit">respon</span></div><div class="stat-label">Total feedback</div></div>';
+    var posPct = n ? Math.round(((dist[4]+dist[5])/n)*100) : 0;
+    html += '<div class="stat-card"><div class="stat-num">'+posPct+'<span class="unit">%</span></div><div class="stat-label">Memberi 4-5 bintang</div></div>';
+    html += '</div>';
+
+    html += '<div class="dist-card"><div class="dist-title">Distribusi Rating</div>';
+    for(var s=5;s>=1;s--){
+      var pct = n ? (dist[s]/n*100) : 0;
+      html += '<div class="dist-row"><div class="lbl">'+s+' '+starSVG()+'</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:'+pct+'%;"></div></div><div class="cnt">'+dist[s]+'</div></div>';
+    }
+    html += '</div>';
+
+    if(sortedTags.length){
+      html += '<div class="tags-summary"><div class="dist-title">Aspek yang Disebut Wali Murid</div><div class="tag-chip-row">';
+      sortedTags.forEach(function(t){
+        html += '<span class="tag-chip">'+escapeHtml(t)+'<b>'+tagCounts[t]+'</b></span>';
+      });
+      html += '</div></div>';
+    }
+
+    var withComments = entries.filter(function(e){ return e.comment && e.comment.length; });
+    html += '<div class="comments-section"><h3>Komentar dari Wali Murid ('+withComments.length+')</h3>';
+    if(withComments.length === 0){
+      html += '<div class="comment-card"><div class="comment-text empty-msg">Belum ada komentar tertulis, hanya rating bintang.</div></div>';
+    } else {
+      withComments.forEach(function(e){
+        html += '<div class="comment-card">';
+        html += '<div class="comment-top"><div class="comment-stars">';
+        for(var k=1;k<=5;k++){
+          html += '<svg class="'+(k<=e.rating?'':'empty')+'" viewBox="0 0 24 24"><path d="M12 2.5l3.09 6.26 6.91 1-5 4.87 1.18 6.88L12 18.27l-6.18 3.24L7 14.63l-5-4.87 6.91-1L12 2.5z"/></svg>';
+        }
+        html += '</div><div class="comment-date">'+formatDate(e.ts)+'</div></div>';
+        html += '<div class="comment-text">'+escapeHtml(e.comment)+'</div>';
+        if(e.tags && e.tags.length){
+          html += '<div class="comment-tags">' + e.tags.map(function(t){ return '<span class="tag-chip">'+escapeHtml(t)+'</span>'; }).join('') + '</div>';
+        }
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    dashContent.innerHTML = html;
+
+    requestAnimationFrame(function(){
+      document.querySelectorAll('.dist-bar-fill').forEach(function(el){
+        var w = el.style.width;
+        el.style.width = '0%';
+        requestAnimationFrame(function(){ el.style.width = w; });
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function formatDate(ts){
+    if(!ts) return '';
+    var d = new Date(ts);
+    var bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+})();
+</script>
+</body>
+</html>
