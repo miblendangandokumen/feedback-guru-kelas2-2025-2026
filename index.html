@@ -330,7 +330,7 @@
 
       /* Tombol khusus Download Excel */
       .download-btn {
-        background: #1d6f42; /* Hijau khas Excel */
+        background: #1d6f42;
         color: var(--white);
         font-family: "Inter", sans-serif;
         font-weight: 600;
@@ -995,7 +995,7 @@
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            Unduh Data Excel (.xlsx)
+            Unduh Cadangan Lokal (.xlsx)
           </button>
         </div>
 
@@ -1009,7 +1009,10 @@
       (function () {
         "use strict";
 
-        // ---------- CONFIG ----------
+        // ========== ALAMAT GOOGLE WEB APP ANDA ==========
+        var GOOGLE_WEB_APP_URL =
+          "https://script.google.com/macros/s/AKfycbwJyikJQNZ25juf0p84sheWKVvRWz6bwSFfUWh7pHk2DxL0Qldg3Ch4Npja2VJ9uund/exec";
+
         var TEACHER_NAME = "Erma Dwi Septanti, S.Pd., Gr.";
         var ACCESS_CODE = "guru123";
         var STAR_LABELS = {
@@ -1158,7 +1161,7 @@
             commentEl.value.length;
         });
 
-        // ---------- FORM SUBMIT ----------
+        // ---------- FORM SUBMIT TO GOOGLE SHEETS ----------
         document
           .getElementById("feedbackForm")
           .addEventListener("submit", async function (e) {
@@ -1174,29 +1177,35 @@
             var submitBtn = document.getElementById("submitBtn");
             var submitBtnText = document.getElementById("submitBtnText");
             submitBtn.disabled = true;
-            submitBtnText.textContent = "Mengirim…";
+            submitBtnText.textContent = "Mengirim Ke Google Sheets…";
 
             var entry = {
               rating: currentRating,
+              keterangan: STAR_LABELS[currentRating],
               comment: commentEl.value.trim(),
               tags: selectedTags.slice(),
               ts: Date.now(),
             };
 
+            // PENGIRIMAN DATA KE GOOGLE SHEETS VIA API APP SCRIPT
             try {
+              var response = await fetch(GOOGLE_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors", // Memungkinkan pengiriman tanpa kendala CORS lintas domain
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(entry),
+              });
+
+              // Cadangan lokal agar dashboard tetap berfungsi sebagai alternatif offline
               var currentDatabase = getLocalData();
               currentDatabase.push(entry);
               saveLocalData(currentDatabase);
 
-              await new Promise((resolve) => setTimeout(resolve, 400));
-
               document.getElementById("feedbackForm").style.display = "none";
               document.getElementById("successScreen").style.display = "block";
             } catch (err) {
-              console.error("Gagal mengirim feedback:", err);
-              alert(
-                "Maaf, terjadi kendala saat mengirim feedback. Silakan coba lagi sebentar.",
-              );
+              console.error("Gagal mengirim ke Google Sheets:", err);
+              alert("Terjadi kesalahan koneksi internet. Silakan coba lagi.");
               submitBtn.disabled = false;
               submitBtnText.textContent = "Kirim Feedback Anonim";
             }
@@ -1222,7 +1231,7 @@
               "Kirim Feedback Anonim";
           });
 
-        // ---------- DASHBOARD LOGIC ----------
+        // ---------- DASHBOARD LOGIC (CADANGAN LOKAL) ----------
         async function loadDashboard() {
           var dashContent = document.getElementById("dashContent");
           var dashSubtitle = document.getElementById("dashSubtitle");
@@ -1236,7 +1245,7 @@
 
             if (entries.length === 0) {
               dashContent.innerHTML =
-                '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Belum ada feedback yang masuk untuk Anda.</p></div>';
+                '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Belum ada feedback yang masuk di perangkat ini. Silakan cek lembar Google Sheets utama Anda.</p></div>';
               return;
             }
 
@@ -1286,7 +1295,7 @@
           html +=
             '<div class="stat-card"><div class="stat-num">' +
             n +
-            ' <span class="unit">respon</span></div><div class="stat-label">Total feedback</div></div>';
+            ' <span class="unit">respon</span></div><div class="stat-label">Feedback di HP ini</div></div>';
           var posPct = n ? Math.round(((dist[4] + dist[5]) / n) * 100) : 0;
           html +=
             '<div class="stat-card"><div class="stat-num">' +
@@ -1295,7 +1304,7 @@
           html += "</div>";
 
           html +=
-            '<div class="dist-card"><div class="dist-title">Distribusi Rating</div>';
+            '<div class="dist-card"><div class="dist-title">Distribusi Rating (Lokal)</div>';
           for (var s = 5; s >= 1; s--) {
             var pct = n ? (dist[s] / n) * 100 : 0;
             html +=
@@ -1329,7 +1338,7 @@
             return e.comment && e.comment.length;
           });
           html +=
-            '<div class="comments-section"><h3>Komentar dari Wali Murid (' +
+            '<div class="comments-section"><h3>Komentar dari Wali Murid Perangkat Ini (' +
             withComments.length +
             ")</h3>";
           if (withComments.length === 0) {
@@ -1381,22 +1390,18 @@
           });
         }
 
-        // ---------- LOGIC UNTUK DOWNLOAD .XLSX (EXCEL) ----------
+        // ---------- LOGIC DOWNLOAD .XLSX ----------
         document
           .getElementById("downloadExcelBtn")
           .addEventListener("click", function () {
             var entries = getLocalData();
             if (entries.length === 0) {
-              alert("Belum ada data feedback yang bisa diunduh.");
+              alert("Belum ada data feedback di perangkat ini.");
               return;
             }
-
-            // Mengurutkan data dari yang tertua ke terbaru (kronologis)
             entries.sort(function (a, b) {
               return (a.ts || 0) - (b.ts || 0);
             });
-
-            // Memetakan struktur data JSON agar menjadi baris kolom Excel yang rapih
             var dataExcel = entries.map(function (e, index) {
               return {
                 No: index + 1,
@@ -1410,26 +1415,17 @@
                   : "(Tidak ada komentar)",
               };
             });
-
             try {
-              // 1. Membuat lembar kerja baru (Worksheet)
               var worksheet = XLSX.utils.json_to_sheet(dataExcel);
-
-              // 2. Membuat buku kerja baru (Workbook)
               var workbook = XLSX.utils.book_new();
-
-              // 3. Memasukkan lembar kerja ke dalam buku kerja
               XLSX.utils.book_append_sheet(
                 workbook,
                 worksheet,
-                "Feedback Wali Murid",
+                "Feedback Lokal",
               );
-
-              // 4. Memerintahkan browser untuk mengunduh file secara instan (.xlsx)
-              XLSX.writeFile(workbook, "rekap_feedback_walimurid.xlsx");
+              XLSX.writeFile(workbook, "backup_lokal_feedback.xlsx");
             } catch (err) {
-              console.error("Gagal mengekspor file Excel:", err);
-              alert("Terjadi kesalahan saat memproses file Excel.");
+              alert("Terjadi kesalahan.");
             }
           });
 
