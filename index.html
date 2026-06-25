@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Feedback Wali Murid - Guru Kelas II MI Ma'arif Blendangan</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap");
 
@@ -327,9 +328,9 @@
         height: 17px;
       }
 
-      /* Tombol khusus Download */
+      /* Tombol khusus Download Excel */
       .download-btn {
-        background: #3a6b4a;
+        background: #1d6f42; /* Hijau khas Excel */
         color: var(--white);
         font-family: "Inter", sans-serif;
         font-weight: 600;
@@ -345,7 +346,7 @@
         margin-top: 10px;
       }
       .download-btn:hover {
-        background: var(--teal-deep);
+        background: #144f2f;
       }
       .download-btn svg {
         width: 16px;
@@ -977,7 +978,7 @@
             <h1>Rekap Feedback Anda</h1>
             <p id="dashSubtitle">Memuat data…</p>
           </div>
-          <button class="download-btn" id="downloadTxtBtn">
+          <button class="download-btn" id="downloadExcelBtn">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -986,11 +987,15 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              ></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            Unduh Semua Data (.txt)
+            Unduh Data Excel (.xlsx)
           </button>
         </div>
 
@@ -1015,16 +1020,13 @@
           5: "Sangat baik",
         };
 
-        // Kunci penyimpanan khusus di localStorage browser
         var STORAGE_KEY = "rekap_feedback_walimurid";
 
-        // Fungsi helper untuk mengambil data dari localStorage
         function getLocalData() {
           var data = localStorage.getItem(STORAGE_KEY);
           return data ? JSON.parse(data) : [];
         }
 
-        // Fungsi helper untuk menyimpan data ke localStorage
         function saveLocalData(arrayData) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(arrayData));
         }
@@ -1182,7 +1184,6 @@
             };
 
             try {
-              // Ambil data lama, tambahkan data baru tanpa menghapus data lama
               var currentDatabase = getLocalData();
               currentDatabase.push(entry);
               saveLocalData(currentDatabase);
@@ -1231,7 +1232,6 @@
             '<div class="loading-text">Memuat rekap feedback…</div>';
 
           try {
-            // Mengambil seluruh data kumulatif yang tersimpan di localStorage
             var entries = getLocalData();
 
             if (entries.length === 0) {
@@ -1240,7 +1240,6 @@
               return;
             }
 
-            // Urutkan berdasarkan waktu kirim terbaru
             entries.sort(function (a, b) {
               return (b.ts || 0) - (a.ts || 0);
             });
@@ -1382,9 +1381,9 @@
           });
         }
 
-        // ---------- LOGIC UNTUK DOWNLOAD RESPONSE.TXT ----------
+        // ---------- LOGIC UNTUK DOWNLOAD .XLSX (EXCEL) ----------
         document
-          .getElementById("downloadTxtBtn")
+          .getElementById("downloadExcelBtn")
           .addEventListener("click", function () {
             var entries = getLocalData();
             if (entries.length === 0) {
@@ -1392,37 +1391,46 @@
               return;
             }
 
-            // Mengurutkan data tertua ke terbaru agar kronologis di file txt
+            // Mengurutkan data dari yang tertua ke terbaru (kronologis)
             entries.sort(function (a, b) {
               return (a.ts || 0) - (b.ts || 0);
             });
 
-            // Menyusun teks laporan feedback
-            var txtContent = `REKAP FEEDBACK WALI MURID\n`;
-            txtContent += `Guru: ${TEACHER_NAME}\n`;
-            txtContent += `Tanggal Cetak: ${new Date().toLocaleString("id-ID")}\n`;
-            txtContent += `Total Respon: ${entries.length} wali murid\n`;
-            txtContent += `==================================================\n\n`;
-
-            entries.forEach(function (e, index) {
-              var tgl = new Date(e.ts).toLocaleString("id-ID");
-              txtContent += `FEEDBACK #${index + 1}\n`;
-              txtContent += `Waktu Kirim : ${tgl}\n`;
-              txtContent += `Rating      : ${e.rating} dari 5 Bintang (${STAR_LABELS[e.rating]})\n`;
-              txtContent += `Aspek Utama : ${e.tags && e.tags.length ? e.tags.join(", ") : "-"}\n`;
-              txtContent += `Komentar    : ${e.comment ? e.comment : "(Tidak ada komentar tertulis)"}\n`;
-              txtContent += `--------------------------------------------------\n`;
+            // Memetakan struktur data JSON agar menjadi baris kolom Excel yang rapih
+            var dataExcel = entries.map(function (e, index) {
+              return {
+                No: index + 1,
+                "Tanggal & Waktu Kirim": new Date(e.ts).toLocaleString("id-ID"),
+                "Rating (Angka)": e.rating,
+                "Keterangan Rating": STAR_LABELS[e.rating],
+                "Aspek Utama":
+                  e.tags && e.tags.length ? e.tags.join(", ") : "-",
+                "Komentar / Saran": e.comment
+                  ? e.comment
+                  : "(Tidak ada komentar)",
+              };
             });
 
-            // Proses pembuatan file teks (.txt) dan pemicu download otomatis
-            var blob = new Blob([txtContent], {
-              type: "text/plain;charset=utf-8",
-            });
-            var link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "response.txt"; // Nama file keluaran
-            link.click();
-            URL.revokeObjectURL(link.href);
+            try {
+              // 1. Membuat lembar kerja baru (Worksheet)
+              var worksheet = XLSX.utils.json_to_sheet(dataExcel);
+
+              // 2. Membuat buku kerja baru (Workbook)
+              var workbook = XLSX.utils.book_new();
+
+              // 3. Memasukkan lembar kerja ke dalam buku kerja
+              XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Feedback Wali Murid",
+              );
+
+              // 4. Memerintahkan browser untuk mengunduh file secara instan (.xlsx)
+              XLSX.writeFile(workbook, "rekap_feedback_walimurid.xlsx");
+            } catch (err) {
+              console.error("Gagal mengekspor file Excel:", err);
+              alert("Terjadi kesalahan saat memproses file Excel.");
+            }
           });
 
         function escapeHtml(str) {

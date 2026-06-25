@@ -1,2 +1,0 @@
-- Please store the submitted feedback in a `const` within the code.
-- And please analyze why an error occurs during submission: "Maaf, terjadi kendala saat mengirim feedback. Silakan coba lagi sebentar."
