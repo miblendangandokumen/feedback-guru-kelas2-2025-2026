@@ -995,7 +995,7 @@
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            Unduh Cadangan Lokal (.xlsx)
+            Unduh Rekap Google Sheets (.xlsx)
           </button>
         </div>
 
@@ -1009,10 +1009,11 @@
       (function () {
         "use strict";
 
-        // ========== ALAMAT GOOGLE WEB APP ANDA ==========
+        // ============ PASTIKAN URL WEB APP GOOGLE ANDA TERPASANG DI SINI ============
         var GOOGLE_WEB_APP_URL =
           "https://script.google.com/macros/s/AKfycbwJyikJQNZ25juf0p84sheWKVvRWz6bwSFfUWh7pHk2DxL0Qldg3Ch4Npja2VJ9uund/exec";
 
+        // ---------- CONFIG ----------
         var TEACHER_NAME = "Erma Dwi Septanti, S.Pd., Gr.";
         var ACCESS_CODE = "guru123";
         var STAR_LABELS = {
@@ -1022,17 +1023,6 @@
           4: "Baik",
           5: "Sangat baik",
         };
-
-        var STORAGE_KEY = "rekap_feedback_walimurid";
-
-        function getLocalData() {
-          var data = localStorage.getItem(STORAGE_KEY);
-          return data ? JSON.parse(data) : [];
-        }
-
-        function saveLocalData(arrayData) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(arrayData));
-        }
 
         function starSVG() {
           return '<svg viewBox="0 0 24 24"><path d="M12 2.5l3.09 6.26 6.91 1-5 4.87 1.18 6.88L12 18.27l-6.18 3.24L7 14.63l-5-4.87 6.91-1L12 2.5z" stroke-linejoin="round"/></svg>';
@@ -1161,7 +1151,7 @@
             commentEl.value.length;
         });
 
-        // ---------- FORM SUBMIT TO GOOGLE SHEETS ----------
+        // ---------- FORM SUBMIT KE GOOGLE SHEETS ----------
         document
           .getElementById("feedbackForm")
           .addEventListener("submit", async function (e) {
@@ -1187,25 +1177,22 @@
               ts: Date.now(),
             };
 
-            // PENGIRIMAN DATA KE GOOGLE SHEETS VIA API APP SCRIPT
             try {
-              var response = await fetch(GOOGLE_WEB_APP_URL, {
+              // Mengirimkan data via metode POST ke URL Aplikasi Web Google Apps Script
+              await fetch(GOOGLE_WEB_APP_URL, {
                 method: "POST",
-                mode: "no-cors", // Memungkinkan pengiriman tanpa kendala CORS lintas domain
+                mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(entry),
               });
 
-              // Cadangan lokal agar dashboard tetap berfungsi sebagai alternatif offline
-              var currentDatabase = getLocalData();
-              currentDatabase.push(entry);
-              saveLocalData(currentDatabase);
-
               document.getElementById("feedbackForm").style.display = "none";
               document.getElementById("successScreen").style.display = "block";
             } catch (err) {
-              console.error("Gagal mengirim ke Google Sheets:", err);
-              alert("Terjadi kesalahan koneksi internet. Silakan coba lagi.");
+              console.error("Gagal mengirim feedback ke Google Sheets:", err);
+              alert(
+                "Maaf, terjadi kendala internet saat mengirim feedback. Silakan coba lagi.",
+              );
               submitBtn.disabled = false;
               submitBtnText.textContent = "Kirim Feedback Anonim";
             }
@@ -1231,32 +1218,41 @@
               "Kirim Feedback Anonim";
           });
 
-        // ---------- DASHBOARD LOGIC (CADANGAN LOKAL) ----------
+        // ---------- DASHBOARD LOGIC (TARIK DATA DARI GOOGLE SHEETS) ----------
+        var DATA_ONLINE_SHEETS = [];
+
         async function loadDashboard() {
           var dashContent = document.getElementById("dashContent");
           var dashSubtitle = document.getElementById("dashSubtitle");
 
           dashSubtitle.textContent = TEACHER_NAME + " — Guru Kelas II";
           dashContent.innerHTML =
-            '<div class="loading-text">Memuat rekap feedback…</div>';
+            '<div class="loading-text">Menghubungkan ke Google Sheets... Mohon tunggu...</div>';
 
           try {
-            var entries = getLocalData();
+            // Meminta data secara real-time ke fungsi doGet() di Google Apps Script
+            var response = await fetch(GOOGLE_WEB_APP_URL);
+            var entries = await response.json();
+
+            if (entries.error) {
+              throw new Error(entries.error);
+            }
+
+            DATA_ONLINE_SHEETS = entries; // Simpan untuk referensi download Excel
 
             if (entries.length === 0) {
               dashContent.innerHTML =
-                '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Belum ada feedback yang masuk di perangkat ini. Silakan cek lembar Google Sheets utama Anda.</p></div>';
+                '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>Belum ada data feedback yang tersimpan di Google Sheets Anda.</p></div>';
               return;
             }
 
-            entries.sort(function (a, b) {
-              return (b.ts || 0) - (a.ts || 0);
-            });
+            // Membalik urutan agar respon paling baru dikirim muncul paling atas di halaman dasbor
+            entries.reverse();
             renderDashboard(entries);
           } catch (err) {
-            console.error("Gagal memuat dashboard:", err);
+            console.error("Gagal memuat dashboard dari Google Sheets:", err);
             dashContent.innerHTML =
-              '<div class="empty-state"><p>Gagal memuat data. Coba muat ulang halaman.</p></div>';
+              '<div class="empty-state"><p style="color:var(--red-warn)">Gagal mengambil data dari Google Sheets. Pastikan internet Anda aktif atau periksa pengaturan Web App di Google Sheets Anda.</p></div>';
           }
         }
 
@@ -1295,7 +1291,7 @@
           html +=
             '<div class="stat-card"><div class="stat-num">' +
             n +
-            ' <span class="unit">respon</span></div><div class="stat-label">Feedback di HP ini</div></div>';
+            ' <span class="unit">respon</span></div><div class="stat-label">Total Feedback Masuk</div></div>';
           var posPct = n ? Math.round(((dist[4] + dist[5]) / n) * 100) : 0;
           html +=
             '<div class="stat-card"><div class="stat-num">' +
@@ -1304,7 +1300,7 @@
           html += "</div>";
 
           html +=
-            '<div class="dist-card"><div class="dist-title">Distribusi Rating (Lokal)</div>';
+            '<div class="dist-card"><div class="dist-title">Distribusi Rating Semua Wali Murid</div>';
           for (var s = 5; s >= 1; s--) {
             var pct = n ? (dist[s] / n) * 100 : 0;
             html +=
@@ -1338,7 +1334,7 @@
             return e.comment && e.comment.length;
           });
           html +=
-            '<div class="comments-section"><h3>Komentar dari Wali Murid Perangkat Ini (' +
+            '<div class="comments-section"><h3>Semua Komentar Tertulis (' +
             withComments.length +
             ")</h3>";
           if (withComments.length === 0) {
@@ -1356,7 +1352,7 @@
               }
               html +=
                 '</div><div class="comment-date">' +
-                formatDate(e.ts) +
+                escapeHtml(e.tanggalStr) +
                 "</div></div>";
               html +=
                 '<div class="comment-text">' + escapeHtml(e.comment) + "</div>";
@@ -1390,42 +1386,43 @@
           });
         }
 
-        // ---------- LOGIC DOWNLOAD .XLSX ----------
+        // ---------- DOWNLOAD GOOGLE SHEETS KE EXCEL ----------
         document
           .getElementById("downloadExcelBtn")
           .addEventListener("click", function () {
-            var entries = getLocalData();
-            if (entries.length === 0) {
-              alert("Belum ada data feedback di perangkat ini.");
+            if (DATA_ONLINE_SHEETS.length === 0) {
+              alert("Tidak ada data dari Google Sheets yang bisa diunduh.");
               return;
             }
-            entries.sort(function (a, b) {
-              return (a.ts || 0) - (b.ts || 0);
-            });
-            var dataExcel = entries.map(function (e, index) {
-              return {
-                No: index + 1,
-                "Tanggal & Waktu Kirim": new Date(e.ts).toLocaleString("id-ID"),
-                "Rating (Angka)": e.rating,
-                "Keterangan Rating": STAR_LABELS[e.rating],
-                "Aspek Utama":
-                  e.tags && e.tags.length ? e.tags.join(", ") : "-",
-                "Komentar / Saran": e.comment
-                  ? e.comment
-                  : "(Tidak ada komentar)",
-              };
-            });
+
+            // Susun urutan dari kronologi paling lama (atas) ke paling baru (bawah) agar file Excel rapi
+            var excelRows = DATA_ONLINE_SHEETS.slice()
+              .reverse()
+              .map(function (e, index) {
+                return {
+                  No: index + 1,
+                  "Tanggal & Waktu Kirim": e.tanggalStr,
+                  "Rating (Angka)": e.rating,
+                  "Keterangan Rating": e.keterangan,
+                  "Aspek Utama":
+                    e.tags && e.tags.length ? e.tags.join(", ") : "-",
+                  "Komentar / Saran": e.comment
+                    ? e.comment
+                    : "(Tidak ada komentar)",
+                };
+              });
+
             try {
-              var worksheet = XLSX.utils.json_to_sheet(dataExcel);
+              var worksheet = XLSX.utils.json_to_sheet(excelRows);
               var workbook = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(
                 workbook,
                 worksheet,
-                "Feedback Lokal",
+                "Data Feedback",
               );
-              XLSX.writeFile(workbook, "backup_lokal_feedback.xlsx");
+              XLSX.writeFile(workbook, "rekap_feedback_sheets.xlsx");
             } catch (err) {
-              alert("Terjadi kesalahan.");
+              alert("Terjadi kesalahan saat mengonversi file Excel.");
             }
           });
 
@@ -1433,27 +1430,6 @@
           var div = document.createElement("div");
           div.textContent = str;
           return div.innerHTML;
-        }
-        function formatDate(ts) {
-          if (!ts) return "";
-          var d = new Date(ts);
-          var bulan = [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "Mei",
-            "Jun",
-            "Jul",
-            "Agu",
-            "Sep",
-            "Okt",
-            "Nov",
-            "Des",
-          ];
-          return (
-            d.getDate() + " " + bulan[d.getMonth()] + " " + d.getFullYear()
-          );
         }
       })();
     </script>
